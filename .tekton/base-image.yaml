@@ -34,7 +34,8 @@ spec:
     - name: revision
       value: "{{ revision }}"
     - name: image
-      value: "image-registry.openshift-image-registry.svc:5000/image-builds/base-image:{{ revision }}"
+      #value: "image-registry.openshift-image-registry.svc:5000/image-builds/base-image:{{ revision }}"
+      value: "image-registry.openshift-image-registry.svc:5000/test-app/base-image:{{ revision }}"
   pipelineSpec:
     params:
       - name: repo_url
