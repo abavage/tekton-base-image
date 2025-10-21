@@ -36,8 +36,8 @@ spec:
       value: "{{ revision }}"
     - name: image
       value: "image-registry.openshift-image-registry.svc:5000/image-builds/base-image:{{ revision }}"
-    - name: namespace
-      value: "base-image"
+    #- name: namespace
+    #  value: "base-image"
   pipelineSpec:
     params:
       - name: repo_url
@@ -97,31 +97,15 @@ spec:
         runAfter:
           - fetch-repository
 
-      #- name: find-tag-image
-      #  taskRef:
-      #    resolver: cluster
-      #    params:
-      #      - name: kind
-      #        value: task
-      #      - name: name
-      #        value: openshift-client
-      #      - name: namespace
-      #        value: openshift-pipelines
-      #    stepOverrides:
-      #      - name: oc
-      #        image: "$(params.image)"
-      #  params:
-      #  - name: SCRIPT
-      #    value: |
       - name: find-image-tag
         #params:
         #  - name: namespace
         #    value: image-builds
-        #taskSpec:
-        #  params:
-        #    - name: namespace
-        #      type: string
-        #      description: "Namespace where the imagestream will reside"
+        taskSpec:
+          params:
+            - name: namespace
+              type: string
+              description: "Namespace where the imagestream will reside"
             #- name: image
             #  type: string
             #  description: "Image to use in this step - sourced at PipelineRun.spec.params"
