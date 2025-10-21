@@ -98,9 +98,9 @@ spec:
           - fetch-repository
 
       - name: find-image-tag
-        #params:
-        #  - name: namespace
-        #    value: image-builds
+        params:
+          - name: namespace
+            value: image-builds
         taskSpec:
           params:
             - name: namespace
