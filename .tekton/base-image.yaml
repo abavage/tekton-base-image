@@ -147,7 +147,7 @@ spec:
               value: openshift-pipelines
         params:
           - name: SOURCE_IMAGE_URL
-            value: docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$(params.namespace)/base-image:latest
+            value: docker://image-registry.openshift-image-registry.svc.cluster.local:5000/"$(params.namespace)"/base-image:latest
           - name: DESTINATION_IMAGE_URL
             value: docker://quay.io/abavage/base-image/base-image:latest
         runAfter:
