@@ -120,12 +120,12 @@ spec:
             - name: namespace
               type: string
               description: "Namespace where the imagestream will reside"
-            - name: image
-              type: string
-              description: "Image to use in this step - sourced at PipelineRun.spec.params"
-            - name: revision
-              type: string
-              description: "Git sha used on the image as a tag - sourced at PipelineRun.spec.params"
+            #- name: image
+            #  type: string
+            #  description: "Image to use in this step - sourced at PipelineRun.spec.params"
+            #- name: revision
+            #  type: string
+            #  description: "Git sha used on the image as a tag - sourced at PipelineRun.spec.params"
           steps:
             - name: find-tag-image
               image: "$(params.image)"
