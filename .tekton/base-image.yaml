@@ -113,7 +113,7 @@ spec:
             #  type: string
             #  description: "Git sha used on the image as a tag - sourced at PipelineRun.spec.params"
           steps:
-            - name: find-tag-image
+            - name: find-image-tag
               image: "$(params.image)"
               script: |
                 #!/bin/bash
@@ -151,7 +151,7 @@ spec:
           - name: DESTINATION_IMAGE_URL
             value: docker://quay.io/abavage/base-image/base-image:latest
         runAfter:
-        - find-tag-image
+        - find-image-tag
 
 
 
