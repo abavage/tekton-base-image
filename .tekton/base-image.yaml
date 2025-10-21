@@ -95,38 +95,44 @@ spec:
         runAfter:
           - fetch-repository
 
+      #- name: find-tag-image
+      #  taskRef:
+      #    resolver: cluster
+      #    params:
+      #      - name: kind
+      #        value: task
+      #      - name: name
+      #        value: openshift-client
+      #      - name: namespace
+      #        value: openshift-pipelines
+      #    stepOverrides:
+      #      - name: oc
+      #        image: "$(params.image)"
+      #  params:
+      #  - name: SCRIPT
+      #    value: |
       - name: find-tag-image
-        taskRef:
-          resolver: cluster
-          params:
-            - name: kind
-              value: task
-            - name: name
-              value: openshift-client
-            - name: namespace
-              value: openshift-pipelines
-          stepOverrides:
+        taskSpec:
+       	  steps:
             - name: oc
               image: "$(params.image)"
-        params:
-        - name: SCRIPT
-          value: |
-            #!/bin/bash
+              script: |
+                #!/bin/bash
 
-            RELEASE=$(params.revision)
-            NAMESPACE=image-builds
-            TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-            TAG=$(skopeo list-tags  --tls-verify=false  --creds="serviceaccount:${TOKEN}" docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$NAMESPACE/base-image | jq -r '.Tags[]')
+                RELEASE=$(params.revision)
+                NAMESPACE=image-builds
+                TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                TAG=$(skopeo list-tags  --tls-verify=false  --creds="serviceaccount:${TOKEN}" docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$NAMESPACE/base-image | jq -r '.Tags[]')
 
-            for i in $TAG; do
-              if [[ "$i" == "$RELEASE" ]]; then
-                echo "Candidate for tagging: this is the latest version - $i"
-                echo "Removing existing latest tag and retagging with $RELEASE"
+                for i in $TAG; do
+                  if [[ "$i" == "$RELEASE" ]]; then
+                    echo "Candidate for tagging: this is the latest version - $i"
+                    echo "Removing existing latest tag and retagging with $RELEASE"
 
-                oc tag "base-image:latest" -d -n "$NAMESPACE"
-                oc tag "base-image:$RELEASE" "base-image:latest" -n "$NAMESPACE"
-              fi
-            done
+                    oc tag "base-image:latest" -d -n "$NAMESPACE"
+                    oc tag "base-image:$RELEASE" "base-image:latest" -n "$NAMESPACE"
+                  fi
+                done
 
         runAfter:
         - build-image
