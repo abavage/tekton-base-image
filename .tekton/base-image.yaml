@@ -151,7 +151,7 @@ spec:
         runAfter:
         - build-image
 
-      - name: build-image
+      - name: skopeo-copy-quay-io
         taskRef:
           resolver: cluster
           params:
