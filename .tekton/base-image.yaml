@@ -113,7 +113,7 @@ spec:
       #    value: |
       - name: find-tag-image
         taskSpec:
-       	  steps:
+          steps:
             - name: oc
               image: "$(params.image)"
               script: |
