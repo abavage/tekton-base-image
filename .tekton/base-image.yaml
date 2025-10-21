@@ -36,6 +36,8 @@ spec:
       value: "{{ revision }}"
     - name: image
       value: "image-registry.openshift-image-registry.svc:5000/image-builds/base-image:{{ revision }}"
+    - name: namespace
+      value: base-image
   pipelineSpec:
     params:
       - name: repo_url
@@ -112,14 +114,14 @@ spec:
       #  - name: SCRIPT
       #    value: |
       - name: find-image-tag
-        params:
-          - name: namespace
-            value: image-builds
-        taskSpec:
-          params:
-            - name: namespace
-              type: string
-              description: "Namespace where the imagestream will reside"
+        #params:
+        #  - name: namespace
+        #    value: image-builds
+        #taskSpec:
+        #  params:
+        #    - name: namespace
+        #      type: string
+        #      description: "Namespace where the imagestream will reside"
             #- name: image
             #  type: string
             #  description: "Image to use in this step - sourced at PipelineRun.spec.params"
@@ -149,6 +151,23 @@ spec:
         runAfter:
         - build-image
 
+      - name: build-image
+        taskRef:
+          resolver: cluster
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: skopeo-copy
+            - name: namespace
+              value: openshift-pipelines
+        params:
+          - name: SOURCE_IMAGE_URL
+            value: docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$(params.namespace)/base-image:latest
+          - name: DESTINATION_IMAGE_URL
+            value: docker://quay.io/abavage/base-image/base-image:latest
+        runAfter:
+        - find-tag-image
 
 
 
