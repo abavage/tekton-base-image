@@ -1,5 +1,4 @@
-#FROM registry.redhat.io/ubi9/ubi:9.6
-FROM registry.redhat.io/openshift4/ose-cli:latest
+FROM registry.redhat.io/openshift4/ose-cli-rhel9:latest
 RUN dnf upgrade -y && \
     dnf install --setopt=tsflags=nodocs -y jq skopeo bind-utils nmap-ncat unzip && \
     dnf clean all -y
