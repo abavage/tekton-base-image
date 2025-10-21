@@ -111,16 +111,29 @@ spec:
       #  params:
       #  - name: SCRIPT
       #    value: |
-      - name: find-tag-image
+      - name: find-image-tag
+        params:
+          - name: namespace
+            value: image-builds
         taskSpec:
+          params:
+            - name: namespace
+              type: string
+              description: "Namespace where the imagestream will reside"
+            - name: image
+              type: string
+              description: "Image to use in this step - sourced at PipelineRun.spec.params"
+            - name: revision
+              type: string
+              description: "Git sha used on the image as a tag - sourced at PipelineRun.spec.params"
           steps:
-            - name: oc
+            - name: find-tag-image
               image: "$(params.image)"
               script: |
                 #!/bin/bash
 
                 RELEASE=$(params.revision)
-                NAMESPACE=image-builds
+                NAMESPACE=$(params.namespace)
                 TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
                 TAG=$(skopeo list-tags  --tls-verify=false  --creds="serviceaccount:${TOKEN}" docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$NAMESPACE/base-image | jq -r '.Tags[]')
 
@@ -133,7 +146,6 @@ spec:
                     oc tag "base-image:$RELEASE" "base-image:latest" -n "$NAMESPACE"
                   fi
                 done
-
         runAfter:
         - build-image
 
