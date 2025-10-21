@@ -1,4 +1,5 @@
-apiVersion: tekton.dev/v1beta1
+#apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   name: base-image
@@ -8,7 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/on-event: "[pull_request]"
 
     # The branch or tag we are targeting (ie: main, refs/tags/*)
-    #pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
 
     # Fetch the git-clone task from hub, we are able to reference later on it
     # with taskRef and it will automatically be embedded into our pipeline.
@@ -35,6 +36,8 @@ spec:
       value: "{{ revision }}"
     - name: image
       value: "image-registry.openshift-image-registry.svc:5000/image-builds/base-image:{{ revision }}"
+    - name: namespace
+      value: "image-builds"
   pipelineSpec:
     params:
       - name: repo_url
@@ -93,3 +96,70 @@ spec:
             value: ./containerfile
         runAfter:
           - fetch-repository
+
+      - name: find-image-tag
+        #params:
+        #  - name: namespace
+        #    value: image-builds
+        taskSpec:
+          #params:
+          #  - name: namespace
+          #    type: string
+          #    description: "Namespace where the imagestream will reside"
+          steps:
+            - name: find-image-tag
+              image: "$(params.image)"
+              script: |
+                #!/bin/bash
+
+                RELEASE=$(params.revision)
+                NAMESPACE=$(params.namespace)
+                TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                TAG=$(skopeo list-tags  --tls-verify=false  --creds="serviceaccount:${TOKEN}" docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$NAMESPACE/base-image | jq -r '.Tags[]')
+
+                for i in $TAG; do
+                  if [[ "$i" == "$RELEASE" ]]; then
+                    echo "Candidate for tagging: this is the latest version - $i"
+                    echo "Removing existing latest tag and retagging with $RELEASE"
+
+                    oc tag "base-image:latest" -d -n "$NAMESPACE"
+                    oc tag "base-image:$RELEASE" "base-image:latest" -n "$NAMESPACE"
+                  fi
+                done
+        runAfter:
+        - build-image
+
+      - name: skopeo-copy-quay-io
+        taskRef:
+          resolver: cluster
+          params:
+            - name: kind
+              value: task
+            - name: name
+              value: skopeo-copy
+            - name: namespace
+              value: openshift-pipelines
+        params:
+          - name: SOURCE_IMAGE_URL
+            value: docker://image-registry.openshift-image-registry.svc.cluster.local:5000/$(params.namespace)/base-image:latest
+          - name: DESTINATION_IMAGE_URL
+            value: docker://quay.io/abavage/base-image/base-image:latest
+        runAfter:
+        - find-image-tag
+
+
+
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    # This workspace will inject secret to help the git-clone task to be able to
+    # checkout the private repositories
+    - name: basic-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
