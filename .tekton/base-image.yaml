@@ -104,9 +104,9 @@ spec:
               value: openshift-client
             - name: namespace
               value: openshift-pipelines
-        stepOverrides:
-          - name: oc
-            image: "$(params.image)"
+          stepOverrides:
+            - name: oc
+              image: "$(params.image)"
         params:
         - name: SCRIPT
           value: |
