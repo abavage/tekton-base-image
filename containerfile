@@ -1,6 +1,7 @@
 #FROM registry.redhat.io/ubi9/ubi:9.6
 FROM registry.redhat.io/openshift4/ose-cli:latest
-RUN dnf install -y jq skopeo bind-utils nmap-ncat unzip && \
+RUN dnf upgrade -y && \
+    dnf install --setopt=tsflags=nodocs -y jq skopeo bind-utils nmap-ncat unzip && \
     dnf clean all -y
 RUN curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip && \
 #RUN curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/awscliv2.zip && \
