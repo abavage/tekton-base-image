@@ -13,3 +13,10 @@ $ oc create secret docker-registry quay-credentials --docker-server="quay.io" --
 
 $ oc secrets link pipeline quay-credentials --for=pull,mount -n image-builds
 ```
+
+### Annotation on the pipeline serviceAccount
+```
+$ aws sts get-caller-identity | jq -r '.Account'
+
+$ oc annotate sa pipeline eks.amazonaws.com/role-arn=arn:aws:iam::<aws_account>:role/<cluster_name>-openshift-pipeline-image-builds -n image-builds 
+```
